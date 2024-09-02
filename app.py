@@ -1,8 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import bcrypt
 import os
+# import dotenv
+
+# dotenv.load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -10,6 +13,10 @@ CORS(app)  # Enable CORS for all routes
 # Configure SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{os.environ.get('DB_USER')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('HOST_NAME')}/{os.environ.get('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Set the secret key for session management
+app.secret_key = os.environ.get('SECRET_KEY', '1qaz2wsx3edc')
+
 db = SQLAlchemy(app)
 
 # Define the User model
@@ -91,8 +98,6 @@ def get_profile():
 def logout():
     session.pop('user_id', None)  # Remove user ID from session
     return jsonify({'message': 'Logged out successfully'}), 200
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
