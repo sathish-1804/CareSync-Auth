@@ -3,9 +3,9 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import bcrypt
 import os
-# import dotenv
+import dotenv
 
-# dotenv.load_dotenv()
+dotenv.load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
