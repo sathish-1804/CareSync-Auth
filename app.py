@@ -8,17 +8,14 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configure SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    f"mysql+mysqlconnector://"
-    f"{os.environ.get('DB_USER')}:{os.environ.get('DB_PASSWORD')}@"
-    f"{os.environ.get('HOST_NAME')}/{os.environ.get('DB_NAME')}"
-)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{os.environ.get('DB_USER')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('HOST_NAME')}/{os.environ.get('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Define the User model
-class Users(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
+class User(db.Model):
+    __tablename__ = 'Users'  # Ensure the table name matches your database
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -44,6 +41,7 @@ def register():
 
     hashed_password = hash_password(password)
 
+    # Insert user into the database
     new_user = User(email=email, password_hash=hashed_password)
     db.session.add(new_user)
     db.session.commit()
@@ -60,8 +58,8 @@ def login():
     if not email or not password:
         return jsonify({'message': 'Email and password are required'}), 400
 
+    # Check user credentials
     user = User.query.filter_by(email=email).first()
-
     if user and check_password(user.password_hash, password):
         return jsonify({'message': 'Login successful'}), 200
     else:
