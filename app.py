@@ -117,7 +117,7 @@ def add_user_profile():
     user_profile = UserProfile(
         user_id=data['user_id'],
         full_name=data['full_name'],
-        DOB=data['DOB'],
+        DOB=data['dob'],
         age=data['age'],
         gender=data['gender'],
         phone_number=data['phone_number'],
