@@ -1,6 +1,7 @@
-gunicorn
-Flask 
-Flask-Cors 
-Flask-MySQLdb 
-flask-mysql-connector
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+mysql-connector-python
 bcrypt
+gunicorn
+python-dotenv
