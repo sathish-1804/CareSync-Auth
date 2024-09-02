@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import bcrypt
+from datetime import datetime 
 import os
 import dotenv
 
@@ -115,10 +116,12 @@ def login():
 @app.route('/user-profile', methods=['POST'])
 def add_user_profile():
     data = request.get_json()
+    dob = data.get('DOB')
+    dob_converted = datetime.strptime(dob, "%Y-%m-%d").date()
     user_profile = UserProfile(
         user_id=data['user_id'],
         full_name=data['full_name'],
-        DOB=data['dob'],
+        DOB=dob_converted,
         age=data['age'],
         gender=data['gender'],
         phone_number=data['phone_number'],
