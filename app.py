@@ -47,6 +47,7 @@ class HealthInformation(db.Model):
     health_info_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'))
     medical_history = db.Column(db.Text)
+    family_medical_history = db.Column(db.Text)
     allergies = db.Column(db.Text)
     current_medications = db.Column(db.Text)
 
@@ -140,6 +141,7 @@ def add_health_information():
         user_id=data['user_id'],
         medical_history=data['medical_history'],
         allergies=data['allergies'],
+        family_medical_history = data['family_medical_history'],
         current_medications=data['current_medications']
     )
     db.session.add(health_info)
