@@ -1,18 +1,28 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_mysql_connector import MySQL
+from flask_sqlalchemy import SQLAlchemy
 import bcrypt
 import os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Configure MySQL
-app.config['MYSQL_HOST'] = os.environ.get('HOST_NAME')
-app.config['MYSQL_USER'] = os.environ.get('DB_USER')
-app.config['MYSQL_PASSWORD'] = os.environ.get('DB_PASSWORD')
-app.config['MYSQL_DATABASE'] = os.environ.get('DB_NAME')
-mysql = MySQL(app)
+# Configure SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f"mysql+mysqlconnector://"
+    f"{os.environ.get('DB_USER')}:{os.environ.get('DB_PASSWORD')}@"
+    f"{os.environ.get('HOST_NAME')}/{os.environ.get('DB_NAME')}"
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# Define the User model
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
 # Helper function to hash passwords
 def hash_password(password):
@@ -34,11 +44,10 @@ def register():
 
     hashed_password = hash_password(password)
 
-    conn = mysql.connection
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO Users (email, password_hash) VALUES (%s, %s)", (email, hashed_password))
-    conn.commit()
-    cursor.close()
+    new_user = User(email=email, password_hash=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
     return jsonify({'message': 'User registered successfully'}), 201
 
 # API endpoint to login
@@ -51,13 +60,9 @@ def login():
     if not email or not password:
         return jsonify({'message': 'Email and password are required'}), 400
 
-    conn = mysql.connection
-    cursor = conn.cursor()
-    cursor.execute("SELECT password_hash FROM Users WHERE email = %s", (email,))
-    result = cursor.fetchone()
-    cursor.close()
+    user = User.query.filter_by(email=email).first()
 
-    if result and check_password(result[0], password):
+    if user and check_password(user.password_hash, password):
         return jsonify({'message': 'Login successful'}), 200
     else:
         return jsonify({'message': 'Invalid email or password'}), 401
