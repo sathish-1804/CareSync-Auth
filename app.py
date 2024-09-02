@@ -27,6 +27,9 @@ def hash_password(password):
 
 # Helper function to check passwords
 def check_password(hashed_password, password):
+    # Convert hashed_password to bytes if it is a string
+    if isinstance(hashed_password, str):
+        hashed_password = hashed_password.encode('utf-8')
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
 
 # API endpoint to register a new user
@@ -58,12 +61,38 @@ def login():
     if not email or not password:
         return jsonify({'message': 'Email and password are required'}), 400
 
-    # Check user credentials
     user = User.query.filter_by(email=email).first()
+
     if user and check_password(user.password_hash, password):
+        session['user_id'] = user.user_id  # Store user ID in session
         return jsonify({'message': 'Login successful'}), 200
     else:
         return jsonify({'message': 'Invalid email or password'}), 401
+        
+@app.route('/profile', methods=['GET'])
+def get_profile():
+    if 'user_id' not in session:
+        return jsonify({'message': 'User not logged in'}), 401
+
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    if user:
+        user_data = {
+            'email': user.email,
+            'created_at': user.created_at,
+            'updated_at': user.updated_at
+        }
+        return jsonify({'user': user_data}), 200
+    else:
+        return jsonify({'message': 'User not found'}), 404
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('user_id', None)  # Remove user ID from session
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
