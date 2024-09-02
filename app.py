@@ -14,9 +14,6 @@ CORS(app)  # Enable CORS for all routes
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{os.environ.get('DB_USER')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('HOST_NAME')}/{os.environ.get('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Set the secret key for session management
-app.secret_key = os.environ.get('SECRET_KEY', '1qaz2wsx3edc')
-
 db = SQLAlchemy(app)
 
 # Define the User model
@@ -56,7 +53,8 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message': 'User registered successfully'}), 201
+    # Return the user_id along with the message
+    return jsonify({'UserID': new_user.user_id, 'message': 'User registered successfully'}), 201
 
 # API endpoint to login
 @app.route('/login', methods=['POST'])
@@ -71,33 +69,10 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and check_password(user.password_hash, password):
-        session['user_id'] = user.user_id  # Store user ID in session
         return jsonify({'message': 'Login successful'}), 200
     else:
         return jsonify({'message': 'Invalid email or password'}), 401
-        
-@app.route('/profile', methods=['GET'])
-def get_profile():
-    if 'user_id' not in session:
-        return jsonify({'message': 'User not logged in'}), 401
 
-    user_id = session['user_id']
-    user = User.query.get(user_id)
-
-    if user:
-        user_data = {
-            'email': user.email,
-            'created_at': user.created_at,
-            'updated_at': user.updated_at
-        }
-        return jsonify({'user': user_data}), 200
-    else:
-        return jsonify({'message': 'User not found'}), 404
-
-@app.route('/logout', methods=['POST'])
-def logout():
-    session.pop('user_id', None)  # Remove user ID from session
-    return jsonify({'message': 'Logged out successfully'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
