@@ -2,4 +2,5 @@ gunicorn
 Flask 
 Flask-Cors 
 Flask-MySQLdb 
+flask-mysql-connector
 bcrypt
