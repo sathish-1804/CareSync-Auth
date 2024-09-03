@@ -116,7 +116,7 @@ def login():
 @app.route('/user-profile', methods=['POST'])
 def add_user_profile():
     data = request.get_json()
-    dob = data.get('DOB')
+    dob = data.get('dob')
     dob_converted = datetime.strptime(dob, "%Y-%m-%d").date()
     user_profile = UserProfile(
         user_id=data['user_id'],
