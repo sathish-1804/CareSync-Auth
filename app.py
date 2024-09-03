@@ -25,6 +25,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    user_details = db.Column(db.Boolean, default=False)
 
 # Define the UserProfile model
 class UserProfile(db.Model):
@@ -170,5 +171,17 @@ def add_lifestyle_information():
     db.session.commit()
     return jsonify({'message': 'Lifestyle information added successfully'}), 201
 
+
+# API endpoint to get user details status
+@app.route('/user-details-status/<int:user_id>', methods=['GET'])
+def get_user_details_status(user_id):
+    user = User.query.filter_by(user_id=user_id).first()
+    
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    
+    return jsonify({'UserID': user.user_id, 'UserDetails': user.user_details}), 200
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
